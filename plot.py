@@ -11,3 +11,7 @@ def plotLine (data ,theta):
     Y = np.dot(x_a,theta)
     plt.plot(x,Y)
     plt.show()
+
+def plotLoss (loss, iterations):
+    plt.plot(range(iterations), loss)
+    plt.show()
