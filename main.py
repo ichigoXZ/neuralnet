@@ -1,6 +1,7 @@
 import numpy as np
 from dealCsv import readCsv,writeCsv
 from gradientDescent import gradientDescent
+from plot import plotLine
 
 loadfile = "ex1data1.csv"
 alpha = 0.01
@@ -15,4 +16,4 @@ if __name__ == '__main__':
 
     theta = gradientDescent(X, y, theta, alpha=alpha, iterations=iterations)
 
-
+    plotLine(data, theta)
