@@ -7,17 +7,18 @@ from activations import sigmoid
 from featuremap import mapFeature
 
 """
-for ex2data2: alpha = 0.0001 and degree = 6 and initial theta all zero.
+for ex2data2: alpha = 0.0001 and degree = 6 and initial theta all zero and lambda = 1
               predict reach 0.6525423728881 when iterations reach 200000 then not change.
               we can initial theta all one to reach higher accurate, but they all came to the same end
+              change lamda can reach better results.
 """
 
 loadfile = "data/ex2data2.csv"
-options = {"alpha": 0.0001,
-           "iterations": 10000,    # for ex2data1: try >150000
+options = {"alpha": 0.001,
+           "iterations": 50000,    # for ex2data1: try >150000
            "activations": "sigmoid",
            "regularized": True,
-           "lambda": 1
+           "lambda": 0
            }
 
 def simpleLinerRegression(data):
@@ -67,21 +68,19 @@ def logicRegressionLine(data):
     plotShow()
 
 def logicRegressionRegularized(data):
-    # plotSortScatter(data)
-    # plotShow()
     X = mapFeature(data[:,:-1], 6)
     y = data[:,-1]
     theta = np.zeros(shape=X.shape[1])
 
     theta, loss = gradientDescent(X, y, theta, options)
     accurates = []
-    for i in range(25):
-        theta, _ = gradientDescent(X, y, theta, options)
+    # for i in range(25):
+    #     theta, _ = gradientDescent(X, y, theta, options)
         # test
-        predict = (np.round(sigmoid(np.dot(X, theta))) == y)
-        accurate = 1.0 * np.sum(predict == True) / len(y)
-        accurates.append(accurate)
-        print i * options["iterations"], accurate
+        # predict = (np.round(sigmoid(np.dot(X, theta))) == y)
+        # accurate = 1.0 * np.sum(predict == True) / len(y)
+        # accurates.append(accurate)
+        # print i * options["iterations"], accurate
     # print theta
 
     # test
@@ -90,13 +89,15 @@ def logicRegressionRegularized(data):
     # print 1.0 * np.sum(y==0) / len(y)
 
     # plotLoss(accurates, 50)
-    # plotLoss(loss, options["iterations"])
+    plotLoss(loss, options["iterations"])
     plotSortBlock(data,theta)
     plotSortScatter(data)
     plotShow()
 
 if __name__ == '__main__':
     data = readCsv(loadfile)
-
-    logicRegressionRegularized(data)
+    # simpleLinerRegression(data)   # ex1data1.csv
+    # mulLinerRegression(data)      # ex1data2.csv
+    # logicRegressionLine(data)     # ex2data1.csv
+    logicRegressionRegularized(data)    #ex2data2.csv
 

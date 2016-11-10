@@ -19,7 +19,7 @@ def gradientDescent (X, y, theta, options):
                 grad = (np.dot(np.transpose(X),h - y)) / m + np.r_[0,options["lambda"] * theta_l]
                 theta -= alpha * grad
         loss.append(computeLoss(X, y, theta, options))
-        # print loss[i]
+        print "loss:",loss[i]
     return theta,loss
 
 

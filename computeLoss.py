@@ -4,7 +4,7 @@ from activations import sigmoid
 def computeLoss (X, y, theta, options):
     J = 0
     m = y.shape[0]
-    if options["activations"] == "liner":
+    if options["activations"] == "linear":
         J = np.sum(map(lambda x: x * x, (np.dot(X, theta) - y))) / (2 * m )
     if options["activations"] == "sigmoid":
         h = sigmoid(np.dot(X, theta))
