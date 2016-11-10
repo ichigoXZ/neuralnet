@@ -1,23 +1,26 @@
 import numpy as np
 from dealCsv import readCsv,writeCsv
 from gradientDescent import gradientDescent
-from plot import plotLine,plotLoss,plot3D
+from plot import plotLine,plotLoss,plot3D,plotSort
 from featureNormalize import featureNormalize
+from activations import sigmoid
 
-loadfile = "ex1data2.csv"
-alpha = 0.001
-iterations = 1500
+loadfile = "data/ex2data1.csv"
+options = {"alpha": 0.001,
+           "iterations": 1500,
+           "activations": "sigmoid"
+           }
 
 def simpleLinerRegression(data):
     X = np.c_[data[:, :-1], np.ones(shape=data.shape[0])]
     y = data[:, -1]
-    theta = np.zeros(shape=data.shape[1])
+    theta = np.ones(shape=data.shape[1])
 
-    theta, loss = gradientDescent(X, y, theta, alpha=alpha, iterations=iterations)
+    theta, loss = gradientDescent(X, y, theta, options)
     print theta
 
     plotLine(data, theta)
-    plotLoss(loss, iterations)
+    plotLoss(loss, options["iterations"])
 
 def mulLinerRegression(data):
     X = data[:,:-1]
@@ -26,8 +29,8 @@ def mulLinerRegression(data):
     y = data[:, -1]
     theta = np.zeros(shape=data.shape[1])
 
-    theta, loss = gradientDescent(X_norm, y, theta, alpha=alpha, iterations=iterations)
-    plotLoss(loss, iterations)
+    theta, loss = gradientDescent(X_norm, y, theta, options)
+    plotLoss(loss, options["iterations"])
     print theta, mu, sigma
 
     plot3D(data, theta, mu, sigma)
@@ -37,8 +40,23 @@ def mulLinerRegression(data):
     x = np.c_[(x - mu) / sigma, np.ones(3)]
     print np.dot(x, theta)
 
+def logicRegression(data):
+    X = np.c_[data[:, :-1], np.ones(shape=data.shape[0])]
+    y = data[:, -1]
+    theta = np.zeros(shape=data.shape[1])
+
+    theta, loss = gradientDescent(X, y, theta, options)
+    print theta
+
+    # test (use train data)
+    predict = (np.round(sigmoid(np.dot(X,theta))) == y)
+    print 1.0 * np.sum(predict == True) / len(y)
+
+    plotLoss(loss, options["iterations"])
+    plotSort(data, theta)
+
 if __name__ == '__main__':
     data = readCsv(loadfile)
 
-    # simpleLinerRegression(data)
-    mulLinerRegression(data)
+    logicRegression(data)
+

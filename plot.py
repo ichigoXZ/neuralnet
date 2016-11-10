@@ -1,8 +1,7 @@
 import numpy as np
 from matplotlib import pyplot as plt
 import itertools
-from mpl_toolkits.mplot3d import Axes3D
-from featureNormalize import featureNormalize
+from activations import sigmoid
 
 def plotLine (data ,theta):
     a = np.floor(np.min(data, axis=0))
@@ -33,6 +32,13 @@ def plot3D (data, theta, mu, sigma):
     ax.set_zlabel('Z')
     plt.show()
 
+def plotSort (data):
+    zeroset = [i.tolist()[:-1] for i in data if i[-1]==0]
+    oneset = [i.tolist()[:-1] for i in data if i[-1]==1]
+    plt.plot([i[0] for i in zeroset], [i[1] for i in zeroset], 'gs',
+                [i[0] for i in oneset], [i[1] for i in oneset], 'b^')
+    plt.show()
+
 def plotLoss (loss, iterations):
     plt.plot(range(iterations), loss)
-    # plt.show()
+    plt.show()

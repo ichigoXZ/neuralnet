@@ -15,4 +15,3 @@ def readCsv (filename):
 def writeCsv (filename, data):
     np.savetxt(filename, data, delimiter = ',')
 
-
