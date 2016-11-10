@@ -1,7 +1,6 @@
 import numpy as np
 from matplotlib import pyplot as plt
 import itertools
-from activations import sigmoid
 
 def plotLine (data ,theta):
     a = np.floor(np.min(data, axis=0))
@@ -32,17 +31,19 @@ def plot3D (data, theta, mu, sigma):
     ax.set_zlabel('Z')
     plt.show()
 
-def plotSort (data, theta):
+def plotSortScatter (data):
     zeroset = [i.tolist()[:-1] for i in data if i[-1]==0]
     oneset = [i.tolist()[:-1] for i in data if i[-1]==1]
     plt.plot([i[0] for i in zeroset], [i[1] for i in zeroset], 'gs',
                 [i[0] for i in oneset], [i[1] for i in oneset], 'b^')
+
+def plotSortLine(data, theta):
     # draw line
     x = np.array([np.floor(np.min(data[:,0])), np.floor(np.max(data[:,0])) + 1])
-    # Y = theta[0] * x
-    print theta
     Y = - (theta[0] * x + theta[2]) / theta[1]
     plt.plot(x, Y)
+
+def plotShow():
     plt.show()
 
 def plotLoss (loss, iterations):
