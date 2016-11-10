@@ -7,7 +7,7 @@ from activations import sigmoid
 
 loadfile = "data/ex2data1.csv"
 options = {"alpha": 0.001,
-           "iterations": 1500,
+           "iterations": 200000,    # for ex2data1: try >150000
            "activations": "sigmoid"
            }
 
