@@ -14,7 +14,7 @@ for ex2data2: alpha = 0.0001 and degree = 6 and initial theta all zero and lambd
 """
 
 loadfile = "data/ex2data2.csv"
-options = {"alpha": 0.01,
+options = {"alpha": 100,
            "iterations": 50,    # for ex2data1: try >150000
            "activations": "sigmoid",
            "regularized": True,
@@ -96,13 +96,22 @@ def logicRegressionRegularized(data):
 
 def oneVsAll(images, labels, K):
     images = np.c_[images, np.ones(images.shape[0])]
+    print images.shape
     all_theta = np.zeros(shape=(K, images.shape[1]))
 
+    splices = images.shape[0] / 10
+    data = np.split(images, splices, axis=0)
 
+    y = np.split(labels, splices, axis=0)
     losses = []
     for i in range(K):
-        all_theta, loss = gradientDescent(images, (labels==i), all_theta[i], options)
-        losses.append(loss)
+        for j in range(splices):
+            # print images[j].shape
+            # print y[j].shape
+            # print all_theta[i].shape
+            print j
+            all_theta, loss = gradientDescent(data[j], (y[j]==i), all_theta[i], options)
+        # losses.append(loss)
         plotLoss(loss, options["iterations"])
 
     #test
