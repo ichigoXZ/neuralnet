@@ -14,8 +14,8 @@ for ex2data2: alpha = 0.0001 and degree = 6 and initial theta all zero and lambd
 """
 
 loadfile = "data/ex2data2.csv"
-options = {"alpha": 0.001,
-           "iterations": 50000,    # for ex2data1: try >150000
+options = {"alpha": 0.01,
+           "iterations": 50,    # for ex2data1: try >150000
            "activations": "sigmoid",
            "regularized": True,
            "lambda": 0
@@ -94,10 +94,26 @@ def logicRegressionRegularized(data):
     plotSortScatter(data)
     plotShow()
 
+def oneVsAll(images, labels, K):
+    images = np.c_[images, np.ones(images.shape[0])]
+    all_theta = np.zeros(shape=(K, images.shape[1]))
+
+
+    losses = []
+    for i in range(K):
+        all_theta, loss = gradientDescent(images, (labels==i), all_theta[i], options)
+        losses.append(loss)
+        plotLoss(loss, options["iterations"])
+
+    #test
+    # plotLosses(losses, options["iterations"], K)
+
 if __name__ == '__main__':
-    data = readCsv(loadfile)
+    # data = readCsv(loadfile)
     # simpleLinerRegression(data)   # ex1data1.csv
     # mulLinerRegression(data)      # ex1data2.csv
     # logicRegressionLine(data)     # ex2data1.csv
-    logicRegressionRegularized(data)    #ex2data2.csv
-
+    # logicRegressionRegularized(data)    #ex2data2.csv
+    images = readCsv("data/test_images.csv")
+    labels = readCsv("data/test_labels.csv")
+    oneVsAll(images, labels, K=10)

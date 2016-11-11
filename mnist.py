@@ -6,9 +6,11 @@ from scipy.misc import imsave
 
 from dealCsv import writeCsv, readCsv
 
-imagefile = 'data/train-images.idx3-ubyte'
-labelfile = 'data/train-labels.idx1-ubyte'
-# filename = 'data/t10k-images.idx3-ubyte'
+# imagefile = 'data/train-images.idx3-ubyte'
+# labelfile = 'data/train-labels.idx1-ubyte'
+imagefile = 'data/t10k-images.idx3-ubyte'
+labelfile = 'data/t10k-labels.idx1-ubyte'
+
 
 def readImages(filename):
     binfile = open(filename, 'rb')
@@ -47,7 +49,6 @@ def readImages(filename):
     return images
 
 def readLables(filename):
-    filename = 'data/train-labels.idx1-ubyte'
     binfile = open(filename, 'rb')
     buf = binfile.read()
 
@@ -70,11 +71,11 @@ def readLables(filename):
 
 
 if __name__ == "__main__":
-    images = readImages(imagefile)
+    # images = readImages(imagefile)
     # print images.shape
     labels = readLables(labelfile)
-    writeCsv("data/train_images.csv", images)
-    writeCsv("data/train_labels.csv", labels)
+    # writeCsv("data/test_images.csv", images)
+    writeCsv("data/test_labels.csv", labels)
     # images = readCsv("data/train_images.csv")
     # print images.shape
     # im = images[3]

@@ -67,3 +67,11 @@ def plotShow():
 def plotLoss (loss, iterations):
     plt.plot(range(iterations), loss)
     plt.show()
+
+"""
+def plotLosses(loss, iterations, K):
+    fig = []
+    for i in range(K):
+        fig = plt.figure()
+        fig.plot(range(iterations), loss[i])
+"""
