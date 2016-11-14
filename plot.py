@@ -35,9 +35,9 @@ def plot3D (data, theta, mu, sigma):
     plt.show()
 
 def plotSortScatter (data):
-    zeroset = [i.tolist()[:-1] for i in data if i[-1]==0]
+    zeroset = [i.tolist()[:-1] for i in data if i[-1]!=1]
     oneset = [i.tolist()[:-1] for i in data if i[-1]==1]
-    plt.plot([i[0] for i in zeroset], [i[1] for i in zeroset], 'rs',
+    plt.plot([i[0] for i in zeroset], [i[1] for i in zeroset], 'r^',
                 [i[0] for i in oneset], [i[1] for i in oneset], 'b^')
 
 def plotSortLine(data, theta):
@@ -59,7 +59,7 @@ def plotSortBlock(data, theta):
     Z = [i for i in Z if np.round(i[2])==0]
     Z = np.array(Z)
     print type(Z)
-    plt.plot(Z[:,0],Z[:,1],'go')
+    plt.plot(Z[:,0],Z[:,1],'gs')
 
 def plotShow():
     plt.show()
@@ -67,6 +67,7 @@ def plotShow():
 def plotLoss (loss, iterations):
     plt.plot(range(iterations), loss)
     plt.show()
+
 
 """
 def plotLosses(loss, iterations, K):
