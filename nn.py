@@ -174,7 +174,7 @@ def backProp(network, target, errorFunc):
     :param target:
     """
     outputNode = network[len(network) - 1][0]
-    _, outputNode.outputDer = errorFunc(outputNode.output, target)
+    outputNode.outputDer = errorFunc.der(outputNode.output, target)
 
     # Go through the layers backwards.
     for layerIdx in range(len(network) - 1, 0, -1):
@@ -252,9 +252,16 @@ if __name__ == "__main__":
     trainData = data.classifyXORData(100, 0)
     testData = data.classifyXORData(100, 0)
     iteration = 0
+    alpha = 0.03
     net = buildNetwork([2,3,2,1], activation=Activation.tanh,
                  outputActivation=Activation.tanh, regularization=None,
                  inputIds=["x1","x2"])
+    for iter in range(100):
+        for i, point in enumerate(trainData):
+          forwardProp(network=net, inputs=point[:-1])
+          backProp(network=net, target=point[-1], errorFunc=Errors.SQUARE)
+          if (i + 1) % 10 == 0:
+              updateWeights(network=net, learningRate=alpha, regularizationRate=0)
 
-    print getLoss(network=net, dataPoints=trainData)
-    print getLoss(network=net, dataPoints=testData)
+        # print getLoss(network=net, dataPoints=trainData)
+        print getLoss(network=net, dataPoints=testData)
