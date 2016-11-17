@@ -107,7 +107,7 @@ class Link:
     def __init__(self, source, destination, regularization, initZero=False):
         self.id = source.id + "-" + destination.id
         self.source = source
-        self.destination = source
+        self.destination = destination
         self.regularization = regularization
         self.weight = np.random.random() - 0.5
         if initZero:
@@ -139,8 +139,12 @@ def buildNetwork(
             if layerIdx >= 1:
                 # Add links from nodes in the previous layer to this node.
                 for j in range(len(network[layerIdx - 1])):
-                    prevNode = network[layerIdx - 1][j]
-                    link = Link(prevNode, node, regularization, initZero)
+                    # prevNode = network[layerIdx - 1][j]
+                    # print "[1]prevNode.id", network[layerIdx - 1][j].id," node.id", node.id
+                    link = Link(network[layerIdx - 1][j], node, regularization, initZero)
+                    network[layerIdx - 1][j].outputs.append(link)
+                    # print "[2]link.id", network[layerIdx - 1][j].outputs[-1].id
+                    # print "[2]link.source:", link.source.id, " link.dest:", link.destination.id
                     node.inputLinks.append(link)
             currentLayer.append(node)
         network.append(currentLayer)
@@ -181,51 +185,63 @@ def backProp(network, target, errorFunc):
     """
     outputNode = network[len(network) - 1][0]
     outputNode.outputDer = errorFunc.der(outputNode.output, target)
+    network[len(network) - 1][0].outputDer = outputNode.outputDer
 
     # Go through the layers backwards.
     for layerIdx in range(len(network) - 1, 0, -1):
+        # print "[1]layerIdx:",layerIdx
         currentLayer = network[layerIdx]
         # Compute the error derivative of each node with respect to
         # 1) its total input
         # 2) each of its input weights.
         for i in range(len(currentLayer)):
-            node = currentLayer[i]
-            currentLayer[i].inputDer = node.outputDer * node.activation.der(node.totalInput)
-            currentLayer[i].accInputDer += node.inputDer
+            # print "  [2-bias]i:",i
+            node = network[layerIdx][i]
+            network[layerIdx][i].inputDer = node.outputDer * node.activation.der(node.totalInput)
+            network[layerIdx][i].accInputDer +=  network[layerIdx][i].inputDer
 
-            currentLayer[i].numAccumulatedDers += 1
+            network[layerIdx][i].numAccumulatedDers += 1
 
         # Error derivative with respect to each weight coming into the node.
+        currentLayer = network[layerIdx]
         for i in range(len(currentLayer)):
-            node = currentLayer[i]
+            # print "  [2-weight]i:",i
+            node = network[layerIdx][i]
             for j in range(len(node.inputLinks)):
+                # print "    [3]j",j
                 link = node.inputLinks[j]
-                currentLayer[i].inputLinks[j].errorDer = node.inputDer * link.source.output
-                currentLayer[i].inputLinks[j].accErrorDer += link.errorDer
-                currentLayer[i].inputLinks[j].numAccumulatedDers += 1
+                network[layerIdx][i].inputLinks[j].errorDer = node.inputDer * link.source.output
+                network[layerIdx][i].inputLinks[j].accErrorDer += network[layerIdx][i].inputLinks[j].errorDer
+                # print "    [3]link.accErrorDer:", network[layerIdx][i].inputLinks[j].accErrorDer
+                network[layerIdx][i].inputLinks[j].numAccumulatedDers += 1
         if layerIdx == 1:
             continue
-        prevLayer = net[layerIdx - 1]
+        prevLayer = network[layerIdx - 1]
         for i in range(len(prevLayer)):
-            node = prevLayer[i]
+            # print "  [2-prev]i:",i
+            node = network[layerIdx - 1][i]
             # Compute the error derivative with respect to each node'a output
-            prevLayer[i].outputDer = 0
+            network[layerIdx - 1][i].outputDer = 0
             for j in range(len(node.outputs)):
                 output = node.outputs[j]
-                prevLayer[i].outputDer += output.weight * output.destination.inputDer
+                # print "    [3]output.weight:",output.weight
+                # print "    [3]output.source.id:",output.source.id," output.dest.id:", output.destination.id
+                network[layerIdx - 1][i].outputDer += output.weight * output.destination.inputDer
+            # print "  [2]prevLayer.outputDer:", network[layerIdx - 1][i].outputDer
 
 # Update the weights of the network using the previously accumulated error derivatives.
 def updateWeights(network, learningRate, regularizationRate):
     for layerIdx in range(1, len(network)):
         currentLayer = network[layerIdx]
         for i in range(len(currentLayer)):
-            node = currentLayer[i]
+            node = network[layerIdx][i]
             # Update the node's bias
             if node.numAccumulatedDers > 0:
-                currentLayer[i].bias -= learningRate * node.accInputDer / node.numAccumulatedDers
-                currentLayer[i].accInputDer = 0
-                currentLayer[i].numAccumulatedDers = 0
+                network[layerIdx][i].bias -= learningRate * node.accInputDer / node.numAccumulatedDers
+                network[layerIdx][i].accInputDer = 0
+                network[layerIdx][i].numAccumulatedDers = 0
             # Update the weights coming into this node.
+            node = network[layerIdx][i]
             for j in range(len(node.inputLinks)):
                 link = node.inputLinks[j]
                 if link.regularization:
@@ -233,10 +249,10 @@ def updateWeights(network, learningRate, regularizationRate):
                 else:
                     regularDer = 0
                 if link.numAccumulatedDers > 0:
-                    currentLayer[i].inputLinks[j].weight -= (learningRate / link.numAccumulatedDers) * \
+                    network[layerIdx][i].inputLinks[j].weight -= (learningRate / link.numAccumulatedDers) * \
                                    (link.accErrorDer + regularizationRate * regularDer)
-                    currentLayer[i].inputLinks[j].accErrorDer = 0
-                    currentLayer[i].inputLinks[j].numAccumulatedDers = 0
+                    network[layerIdx][i].inputLinks[j].accErrorDer = 0
+                    network[layerIdx][i].inputLinks[j].numAccumulatedDers = 0
 
 
 # Returns the output node in the network
@@ -273,8 +289,8 @@ def predict(network):
 
 
 if __name__ == "__main__":
-    trainData = data.classifyXORData(100, 0)
-    testData = data.classifyXORData(100, 0)
+    trainData = data.classifyCircleData(100, 0)
+    testData = data.classifyCircleData(100, 0)
     iteration = 0
     alpha = 0.03
     net = buildNetwork([2,3,2,1], activation=Activation.tanh,
@@ -283,28 +299,29 @@ if __name__ == "__main__":
     for i in range(len(net)):
         for j in range(len(net[i])):
             node = net[i][j]
-            print i,"-",j,node.id,"node.output:", node.output
+            print i,"-",j,node.id,"node.outputDer:", node.outputDer
             print "link length:",len(node.inputLinks)
-            # for link in node.inputLinks:
-            #     print link.source,"-",link.destination,"weight:",link.weight
+            print "----------------"
+            for link in node.outputs:
+                print link.id,"weight:",link.weight
 
 
-    for iter in range(100):
+    for iter in range(400):
         for i,point in enumerate(trainData):
             forwardProp(network=net, inputs=point[:-1])
             backProp(network=net, target=point[-1], errorFunc=Errors.SQUARE)
             if (i + 1) % 10 == 0:
                 updateWeights(network=net, learningRate=alpha, regularizationRate=0)
-        # print getLoss(network=net, dataPoints=testData)
+        print getLoss(network=net, dataPoints=testData)
         # print getLoss(network=net, dataPoints=trainData)
 
     for i in range(len(net)):
         for j in range(len(net[i])):
             node = net[i][j]
-            print i,"-",j,node.id, "node.output:", node.output
+            print i,"-",j,node.id, "node.outputDer:", node.outputDer
             print "link length:",len(node.inputLinks)
-            # for link in node.inputLinks:
-            #     print link.source,"-",link.destination,"weight:",link.weight
+            for link in node.inputLinks:
+                print link.source.id,"-",link.destination.id,"weight:",link.weight
 
     predict(network=net)
     plotSortScatter(trainData)
