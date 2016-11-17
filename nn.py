@@ -1,6 +1,10 @@
 import numpy as np
 import dataGenerate as data
+import itertools
 import traceback
+from matplotlib import pyplot as plt
+from plot import plotSortScatter
+import re
 
 class Activation:
     class sigmoid:
@@ -70,6 +74,8 @@ class Node:
     def __init__(self, id, activation, initZero=False):
         self.id = id
         self.activation = activation
+        self.inputLinks = []
+        self.outputs = []
         if initZero:
             self.bias = 0
 
@@ -103,6 +109,7 @@ class Link:
         self.source = source
         self.destination = source
         self.regularization = regularization
+        self.weight = np.random.random() - 0.5
         if initZero:
             self.weight = 0
 
@@ -248,20 +255,51 @@ def getLoss(network, dataPoints):
 def oneStep(iteration):
     iteration += 1
 
+def predict(network):
+    x_s = np.linspace(-5.0, 5.0, 100)
+    y_s = np.linspace(-5.0, 5.0, 100)
+    X, Y = np.meshgrid(x_s, y_s)
+    X_s = list(itertools.chain.from_iterable(X))
+    Y_s = list(itertools.chain.from_iterable(Y))
+    inputs = np.c_[X_s, Y_s]
+    Z_s = []
+    for num,i in enumerate(inputs):
+        output = forwardProp(network, i)
+        Z_s.append(output)
+    Z = np.c_[X_s, Y_s, Z_s]
+    Z = [i for i in Z if i[2] > 0]
+    Z = np.array(Z)
+    print type(Z)
+    plt.plot(Z[:, 0], Z[:, 1], 'gs')
+
+
 if __name__ == "__main__":
     trainData = data.classifyXORData(100, 0)
     testData = data.classifyXORData(100, 0)
     iteration = 0
     alpha = 0.03
     net = buildNetwork([2,3,2,1], activation=Activation.tanh,
-                 outputActivation=Activation.tanh, regularization=None,
-                 inputIds=["x1","x2"])
-    for iter in range(100):
-        for i, point in enumerate(trainData):
-          forwardProp(network=net, inputs=point[:-1])
-          backProp(network=net, target=point[-1], errorFunc=Errors.SQUARE)
-          if (i + 1) % 10 == 0:
-              updateWeights(network=net, learningRate=alpha, regularizationRate=0)
+                       outputActivation=Activation.tanh, regularization=None,
+                       inputIds=["x1","x2"])
+    # for i in range(len(net)):
+        # for j in range(len(net[i])):
+        #     node = net[i][j]
+        #     print i,"-",j,node.id
+        #     print "link length:",len(node.inputLinks)
+        #     for link in node.inputLinks:
+        #         print link.source,"-",link.destination,"weight:",link.weight
 
-        # print getLoss(network=net, dataPoints=trainData)
+
+    for iter in range(400):
+        for i,point in enumerate(trainData):
+            forwardProp(network=net, inputs=point[:-1])
+            backProp(network=net, target=point[-1], errorFunc=Errors.SQUARE)
+            if (i + 1) % 10 == 0:
+                updateWeights(network=net, learningRate=alpha, regularizationRate=0)
         print getLoss(network=net, dataPoints=testData)
+        print getLoss(network=net, dataPoints=trainData)
+
+    predict(network=net)
+    plotSortScatter(trainData)
+    plt.show()
+
