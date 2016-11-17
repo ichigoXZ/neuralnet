@@ -29,6 +29,23 @@ class Activation:
             output = np.tanh(Z)
             return 1 - output ** 2
 
+    class Relu:
+        @staticmethod
+        def output(Z):
+            return np.max(0, Z)
+        @staticmethod
+        def der(Z):
+            j = 0 if Z<=0 else 1
+            return j
+
+    class linear:
+        @staticmethod
+        def output(Z):
+            return Z
+        @staticmethod
+        def der(Z):
+            return 1
+
 
 class Regularization:
     @staticmethod
