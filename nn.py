@@ -3,8 +3,9 @@ import dataGenerate as data
 import itertools
 import traceback
 from matplotlib import pyplot as plt
-from plot import plotSortScatter
-import re
+from plot import plotSortScatter, plotLoss
+
+
 
 class Activation:
     class sigmoid:
@@ -270,7 +271,7 @@ def getLoss(network, dataPoints):
 def oneStep(iteration):
     iteration += 1
 
-def predict(network):
+def predictPlot(network, data):
     x_s = np.linspace(-5.0, 5.0, 100)
     y_s = np.linspace(-5.0, 5.0, 100)
     X, Y = np.meshgrid(x_s, y_s)
@@ -284,46 +285,61 @@ def predict(network):
     Z = np.c_[X_s, Y_s, Z_s]
     Z = [i for i in Z if i[2] > 0]
     Z = np.array(Z)
-    print type(Z)
     plt.plot(Z[:, 0], Z[:, 1], 'gs')
+    plotSortScatter(data)
+    plt.show()
 
+def predict(network, data):
+    result = []
+    for item in data:
+        result.append(forwardProp(network=network, inputs=item))
+    return result
+
+def train(network, iteration, trainData, batchSize=10,
+          errorFunc=Errors.SQUARE, learningRate=0.03, regularizationRate=0):
+    for iter in range(iteration):
+        for i, point in enumerate(trainData):
+            forwardProp(network=network, inputs=point[:-1])
+            backProp(network=net, target=point[-1],errorFunc=errorFunc)
+            if (i + 1) % batchSize == 0:
+                updateWeights(network=network, learningRate=learningRate, regularizationRate=regularizationRate)
+
+
+
+
+def oneStep(network, iteration, trainData, batchSize=10,
+          errorFunc=Errors.SQUARE, learningRate=0.03, regularizationRate=0):
+    for i, point in enumerate(trainData):
+        forwardProp(network=network, inputs=point[:-1])
+        backProp(network=net, target=point[-1], errorFunc=errorFunc)
+        if (i + 1) % batchSize == 0:
+            updateWeights(network=network, learningRate=learningRate, regularizationRate=regularizationRate)
 
 if __name__ == "__main__":
     trainData = data.classifyCircleData(100, 0)
-    testData = data.classifyCircleData(100, 0)
-    iteration = 0
+    testData = data.classifyCircleData(100, 0.1)
+    iteration = 400
     alpha = 0.03
     net = buildNetwork([2,3,2,1], activation=Activation.tanh,
                        outputActivation=Activation.tanh, regularization=None,
                        inputIds=["x1","x2"])
-    for i in range(len(net)):
-        for j in range(len(net[i])):
-            node = net[i][j]
-            print i,"-",j,node.id,"node.outputDer:", node.outputDer
-            print "link length:",len(node.inputLinks)
-            print "----------------"
-            for link in node.outputs:
-                print link.id,"weight:",link.weight
 
+    # trainLoss, testLoss = train(network=net, iteration=iteration, trainData=trainData)
+    trainLoss = []
+    testLoss = []
+    for i in range(iteration):
+        oneStep(network=net, iteration=iteration, trainData=trainData)
+        trainLoss.append(getLoss(network=net, dataPoints=trainData))
+        testLoss.append(getLoss(network=net, dataPoints=testData))
+        print "step:",i,"  loss:",getLoss(network=net, dataPoints=trainData)
 
-    for iter in range(400):
-        for i,point in enumerate(trainData):
-            forwardProp(network=net, inputs=point[:-1])
-            backProp(network=net, target=point[-1], errorFunc=Errors.SQUARE)
-            if (i + 1) % 10 == 0:
-                updateWeights(network=net, learningRate=alpha, regularizationRate=0)
-        print getLoss(network=net, dataPoints=testData)
-        # print getLoss(network=net, dataPoints=trainData)
-
-    for i in range(len(net)):
-        for j in range(len(net[i])):
-            node = net[i][j]
-            print i,"-",j,node.id, "node.outputDer:", node.outputDer
-            print "link length:",len(node.inputLinks)
-            for link in node.inputLinks:
-                print link.source.id,"-",link.destination.id,"weight:",link.weight
-
-    predict(network=net)
-    plotSortScatter(trainData)
+    plotLoss(trainLoss, iteration,'-')
+    plotLoss(testLoss, iteration,'--')
     plt.show()
+
+    predictPlot(network=net, data=testData)
+    result = predict(network=net, data=testData[:,:-1])
+    print 1.0 * np.sum(result * testData[:,-1] > 0) / len(result)
+    # for i in range(len(result)):
+    #     print testData[i], result[i]
 

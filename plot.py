@@ -64,9 +64,9 @@ def plotSortBlock(data, theta):
 def plotShow():
     plt.show()
 
-def plotLoss (loss, iterations):
-    plt.plot(range(iterations), loss)
-    plt.show()
+def plotLoss (loss, iterations, type='-'):
+    plt.plot(range(iterations), loss, type)
+
 
 
 """
