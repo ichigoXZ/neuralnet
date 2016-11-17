@@ -163,14 +163,13 @@ def forwardProp(network, inputs):
         raise Exception("The number of inputs must match the number of nodes in"
                         + "the input layer")
     # update the input layer
-    for num, node in zip(inputs,inputLayer):
+    for num, node in zip(inputs,network[0]):
         node.output = num
     for layerIdx in range(1, len(network)):
         currentLayer = network[layerIdx]
         # Update all the nodes in this layer.
         for i in range(len(currentLayer)):
-            node = currentLayer[i]
-            node.updateOutput()
+            network[layerIdx][i].updateOutput()
     return network[len(network) - 1][0].output
 
 def backProp(network, target, errorFunc):
@@ -281,23 +280,31 @@ if __name__ == "__main__":
     net = buildNetwork([2,3,2,1], activation=Activation.tanh,
                        outputActivation=Activation.tanh, regularization=None,
                        inputIds=["x1","x2"])
-    # for i in range(len(net)):
-        # for j in range(len(net[i])):
-        #     node = net[i][j]
-        #     print i,"-",j,node.id
-        #     print "link length:",len(node.inputLinks)
-        #     for link in node.inputLinks:
-        #         print link.source,"-",link.destination,"weight:",link.weight
+    for i in range(len(net)):
+        for j in range(len(net[i])):
+            node = net[i][j]
+            print i,"-",j,node.id,"node.output:", node.output
+            print "link length:",len(node.inputLinks)
+            # for link in node.inputLinks:
+            #     print link.source,"-",link.destination,"weight:",link.weight
 
 
-    for iter in range(400):
+    for iter in range(100):
         for i,point in enumerate(trainData):
             forwardProp(network=net, inputs=point[:-1])
             backProp(network=net, target=point[-1], errorFunc=Errors.SQUARE)
             if (i + 1) % 10 == 0:
                 updateWeights(network=net, learningRate=alpha, regularizationRate=0)
-        print getLoss(network=net, dataPoints=testData)
-        print getLoss(network=net, dataPoints=trainData)
+        # print getLoss(network=net, dataPoints=testData)
+        # print getLoss(network=net, dataPoints=trainData)
+
+    for i in range(len(net)):
+        for j in range(len(net[i])):
+            node = net[i][j]
+            print i,"-",j,node.id, "node.output:", node.output
+            print "link length:",len(node.inputLinks)
+            # for link in node.inputLinks:
+            #     print link.source,"-",link.destination,"weight:",link.weight
 
     predict(network=net)
     plotSortScatter(trainData)
