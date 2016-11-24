@@ -108,17 +108,7 @@ class Node:
         return self.output
 
 
-class Link:
-    id = ""
-    source = Node
-    destination = Node
-    weight = np.random.random() - 0.5
-    # Error derivative with respect to this weight.
-    errorDer = 0;
-    # Accumulated error derivative since the last update.
-    accErrorDer = 0;
-    # Number of accumulated derivatives since the last update.
-    numAccumulatedDers = 0;
+
 
     regularization = Regularization.L1
 
@@ -198,8 +188,6 @@ def backProp(network, target, errorFunc):
     """
     Runs a backward propagation using te provided target and the
     computed output of the previous call to forward propagation.
-    :param network:
-    :param target:
     """
     outputNode = network[len(network) - 1][0]
     outputNode.outputDer = errorFunc.der(outputNode.output, target)
@@ -213,7 +201,6 @@ def backProp(network, target, errorFunc):
         # 1) its total input
         # 2) each of its input weights.
         for i in range(len(currentLayer)):
-            # print "  [2-bias]i:",i
             node = network[layerIdx][i]
             network[layerIdx][i].inputDer = node.outputDer * node.activation.der(node.totalInput)
             network[layerIdx][i].accInputDer +=  network[layerIdx][i].inputDer
@@ -223,29 +210,22 @@ def backProp(network, target, errorFunc):
         # Error derivative with respect to each weight coming into the node.
         currentLayer = network[layerIdx]
         for i in range(len(currentLayer)):
-            # print "  [2-weight]i:",i
             node = network[layerIdx][i]
             for j in range(len(node.inputLinks)):
-                # print "    [3]j",j
                 link = node.inputLinks[j]
                 network[layerIdx][i].inputLinks[j].errorDer = node.inputDer * link.source.output
                 network[layerIdx][i].inputLinks[j].accErrorDer += network[layerIdx][i].inputLinks[j].errorDer
-                # print "    [3]link.accErrorDer:", network[layerIdx][i].inputLinks[j].accErrorDer
                 network[layerIdx][i].inputLinks[j].numAccumulatedDers += 1
         if layerIdx == 1:
             continue
         prevLayer = network[layerIdx - 1]
         for i in range(len(prevLayer)):
-            # print "  [2-prev]i:",i
             node = network[layerIdx - 1][i]
             # Compute the error derivative with respect to each node'a output
             network[layerIdx - 1][i].outputDer = 0
             for j in range(len(node.outputs)):
                 output = node.outputs[j]
-                # print "    [3]output.weight:",output.weight
-                # print "    [3]output.source.id:",output.source.id," output.dest.id:", output.destination.id
                 network[layerIdx - 1][i].outputDer += output.weight * output.destination.inputDer
-            # print "  [2]prevLayer.outputDer:", network[layerIdx - 1][i].outputDer
 
 # Update the weights of the network using the previously accumulated error derivatives.
 def updateWeights(network, learningRate, regularizationRate):
